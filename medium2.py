@@ -141,7 +141,7 @@ def mutation(offspring):
 
 
 
-def save_best_route_image(shortest_path, generation, total_distance, city_coords, output_dir):
+def save_route_image_per_gen(shortest_path, generation, total_distance, city_coords, output_dir):
     x_shortest = [city_coords[city][0] for city in shortest_path]
     y_shortest = [city_coords[city][1] for city in shortest_path]
     x_shortest.append(x_shortest[0])
@@ -204,6 +204,8 @@ def run_ga(cities_names, n_population, n_generations, crossover_per, mutation_pe
     output_dir = 'imagePerGen'
     os.makedirs(output_dir, exist_ok=True)
 
+    best_distances = []
+
     for generation in range(n_generations):
         fitness_probs = fitness_prob(best_mixed_offspring)
         parents_list = []
@@ -240,11 +242,41 @@ def run_ga(cities_names, n_population, n_generations, crossover_per, mutation_pe
         # Save the best route for the current generation
         shortest_path = best_mixed_offspring[0]
         total_distance = total_dist_individual(shortest_path)
-        save_best_route_image(shortest_path, generation, total_distance, city_coords, output_dir)
+        best_distances.append(total_distance)
+        save_route_image_per_gen(shortest_path, generation, total_distance, city_coords, output_dir)
             
-    return best_mixed_offspring
+    return best_mixed_offspring, best_distances
 
+def greedy_tsp(city_coords):
+    n = len(city_coords)
+    visited = [False] * n
+    path = []
+    total_distance = 0
 
+    # Start from the first city
+    current_city = 0
+    path.append(current_city)
+    visited[current_city] = True
+
+    for _ in range(n - 1):
+        nearest_city = None
+        nearest_distance = float('inf')
+        for next_city in range(n):
+            if not visited[next_city]:
+                distance = np.linalg.norm(np.array(city_coords[current_city]) - np.array(city_coords[next_city]))
+                if distance < nearest_distance:
+                    nearest_distance = distance
+                    nearest_city = next_city
+        path.append(nearest_city)
+        visited[nearest_city] = True
+        total_distance += nearest_distance
+        current_city = nearest_city
+
+    # Return to the starting city
+    total_distance += np.linalg.norm(np.array(city_coords[current_city]) - np.array(city_coords[path[0]]))
+    path.append(path[0])
+
+    return path, total_distance
 
 # Parameters and data
 n_population = 250
@@ -260,6 +292,26 @@ cities_names = ["Japan", "Indonesia", "Zimbabwe", "Malaysia", "Afghanistan",
 city_coords = dict(zip(cities_names, zip(x, y)))
 
 # Run the genetic algorithm and get the best routes per generation
-best_routes_per_generation = run_ga(cities_names, n_population,
+best_routes_per_generation, best_distances_per_generation = run_ga(cities_names, n_population,
                                     n_generations, crossover_per,
                                     mutation_per, city_coords)
+
+# Run the greedy algorithm
+greedy_path, greedy_distance = greedy_tsp(list(city_coords.values()))
+
+# Print the results
+print("Genetic Algorithm Best Distance:", best_distances_per_generation[-1])
+print("Greedy Algorithm Distance:", greedy_distance)
+
+# Plot the convergence graph and comparison with Greedy Algorithm
+generations = list(range(1, n_generations + 1))
+plt.plot(generations, best_distances_per_generation, marker='o', label='Genetic Algorithm')
+plt.axhline(y=greedy_distance, color='r', linestyle='--', label='Greedy Algorithm')
+plt.title('Comparison of Genetic Algorithm and Greedy Algorithm')
+plt.xlabel('Generasi')
+plt.ylabel('Jarak Total')
+plt.legend()
+plt.grid(True)
+plt.savefig('comparison_graph.png')
+plt.show()
+
