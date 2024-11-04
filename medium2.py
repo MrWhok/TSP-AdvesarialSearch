@@ -8,6 +8,8 @@ import statistics
 import pandas as pd
 import seaborn as SNs
 import os
+import time
+
 
 def initial_population(cities_list, n_population = 250):
     
@@ -291,17 +293,31 @@ cities_names = ["Japan", "Indonesia", "Zimbabwe", "Malaysia", "Afghanistan",
                 "Netherlands", "United States", "France", "Iceland", "Sweden"]
 city_coords = dict(zip(cities_names, zip(x, y)))
 
+
+start_time_ga = time.time()
 # Run the genetic algorithm and get the best routes per generation
 best_routes_per_generation, best_distances_per_generation = run_ga(cities_names, n_population,
                                     n_generations, crossover_per,
                                     mutation_per, city_coords)
+end_time_ga = time.time()
+time_taken_ga = end_time_ga - start_time_ga
 
+
+start_time_greedy = time.time()
 # Run the greedy algorithm
 greedy_path, greedy_distance = greedy_tsp(list(city_coords.values()))
+end_time_greedy = time.time()
+time_taken_greedy = end_time_greedy - start_time_greedy
+
 
 # Print the results
 print("Genetic Algorithm Best Distance:", best_distances_per_generation[-1])
 print("Greedy Algorithm Distance:", greedy_distance)
+
+# Print the time taken by each algorithm
+print("Time taken by Genetic Algorithm:", time_taken_ga, "seconds")
+print("Time taken by Greedy Algorithm:", time_taken_greedy, "seconds")
+
 
 # Plot the convergence graph and comparison with Greedy Algorithm
 generations = list(range(1, n_generations + 1))
