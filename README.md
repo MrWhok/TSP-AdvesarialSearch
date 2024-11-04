@@ -1,4 +1,1 @@
-## References
-
-- Traveling Salesman Problem (TSP) using Genetic Algorithm by Aimonks
-
+[refrences](https://medium.com/aimonks/traveling-salesman-problem-tsp-using-genetic-algorithm-fea640713758)
