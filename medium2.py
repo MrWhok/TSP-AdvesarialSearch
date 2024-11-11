@@ -26,6 +26,7 @@ def initial_population(cities_list, n_population = 250):
     population_perms = []
     possible_perms = list(permutations(cities_list))
     random_ids = random.sample(range(0,len(possible_perms)),n_population)
+    print(random_ids)
     for i in random_ids:
         population_perms.append(list(possible_perms[i]))
         
@@ -249,36 +250,6 @@ def run_ga(cities_names, n_population, n_generations, crossover_per, mutation_pe
             
     return best_mixed_offspring, best_distances
 
-def greedy_tsp(city_coords):
-    n = len(city_coords)
-    visited = [False] * n
-    path = []
-    total_distance = 0
-
-    # Start from the first city
-    current_city = 0
-    path.append(current_city)
-    visited[current_city] = True
-
-    for _ in range(n - 1):
-        nearest_city = None
-        nearest_distance = float('inf')
-        for next_city in range(n):
-            if not visited[next_city]:
-                distance = np.linalg.norm(np.array(city_coords[current_city]) - np.array(city_coords[next_city]))
-                if distance < nearest_distance:
-                    nearest_distance = distance
-                    nearest_city = next_city
-        path.append(nearest_city)
-        visited[nearest_city] = True
-        total_distance += nearest_distance
-        current_city = nearest_city
-
-    # Return to the starting city
-    total_distance += np.linalg.norm(np.array(city_coords[current_city]) - np.array(city_coords[path[0]]))
-    path.append(path[0])
-
-    return path, total_distance
 
 # Parameters and data
 n_population = 250
@@ -293,9 +264,8 @@ cities_names = ["Japan", "Indonesia", "Zimbabwe", "Malaysia", "Afghanistan",
                 "Netherlands", "United States", "France", "Iceland", "Sweden"]
 city_coords = dict(zip(cities_names, zip(x, y)))
 
-
-start_time_ga = time.time()
 # Run the genetic algorithm and get the best routes per generation
+start_time_ga = time.time()
 best_routes_per_generation, best_distances_per_generation = run_ga(cities_names, n_population,
                                     n_generations, crossover_per,
                                     mutation_per, city_coords)
@@ -303,31 +273,9 @@ end_time_ga = time.time()
 time_taken_ga = end_time_ga - start_time_ga
 
 
-start_time_greedy = time.time()
-# Run the greedy algorithm
-greedy_path, greedy_distance = greedy_tsp(list(city_coords.values()))
-end_time_greedy = time.time()
-time_taken_greedy = end_time_greedy - start_time_greedy
 
-
-# Print the results
 print("Genetic Algorithm Best Distance:", best_distances_per_generation[-1])
-print("Greedy Algorithm Distance:", greedy_distance)
 
-# Print the time taken by each algorithm
 print("Time taken by Genetic Algorithm:", time_taken_ga, "seconds")
-print("Time taken by Greedy Algorithm:", time_taken_greedy, "seconds")
 
-
-# Plot the convergence graph and comparison with Greedy Algorithm
-generations = list(range(1, n_generations + 1))
-plt.plot(generations, best_distances_per_generation, marker='o', label='Genetic Algorithm')
-plt.axhline(y=greedy_distance, color='r', linestyle='--', label='Greedy Algorithm')
-plt.title('Comparison of Genetic Algorithm and Greedy Algorithm')
-plt.xlabel('Generasi')
-plt.ylabel('Jarak Total')
-plt.legend()
-plt.grid(True)
-plt.savefig('comparison_graph.png')
-plt.show()
 
